@@ -1,0 +1,98 @@
+import uuid
+import time
+from utils.file_loader import extract_text
+from utils.chunking import chunk_by_words, chunk_by_sentences
+from utils.embeddings import generate_embedding
+from services.store import upsert_vector
+from db.crud import save_metadata
+from datetime import datetime, timedelta, timezone
+from qdrant_client import QdrantClient
+from config import settings
+import redis
+from models.responses import IngestionResponse
+
+qdrant_client = QdrantClient(host=settings.VECTOR_DB_HOST, port=settings.VECTOR_DB_PORT)
+redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+
+# Persistent file indexing - ensures sequential file numbering across restarts
+def get_next_file_index() -> int:
+    try:
+        points, _ = qdrant_client.scroll(
+            collection_name=settings.COLLECTION_NAME,
+            with_payload=True,
+            limit=10000
+        )
+        
+        if not points:
+            return 1
+            
+        max_index = max(
+            (p.payload.get("file_index", 0) for p in points),
+            default=0
+        )
+        return max_index + 1
+    except Exception as e:
+        print(f"Error getting next file_index: {e}")
+        return 1
+
+# Main ingestion pipeline - processes files into vector embeddings
+async def ingest_file(file, chunking: str) -> IngestionResponse:
+    global file_counter
+
+    # 1️⃣ Generate session_id for this ingestion
+    session_id = str(uuid.uuid4())
+    print('Session ID:', session_id)
+
+    # 2️⃣ Get next file_index
+    file_index = get_next_file_index()
+    print('File Index:', file_index)
+
+    # 3️⃣ File-level timestamp
+    timestamp = time.time()
+    nepal_tz = timezone(timedelta(hours=5, minutes=45))
+    readable_date = datetime.fromtimestamp(timestamp, tz=nepal_tz)
+    file_created_at = readable_date
+
+    # 4️⃣ Extract text
+    text = await extract_text(file)
+
+    # 5️⃣ Chunk text
+    if chunking == "words":
+        chunks = chunk_by_words(text)
+    else:
+        chunks = chunk_by_sentences(text)
+
+    # 6️⃣ Generate embeddings and upsert to Qdrant
+    for idx, chunk in enumerate(chunks):
+        if not chunk.strip():
+            continue
+
+        vector = generate_embedding(chunk)
+        upsert_vector(
+            vector_id=str(uuid.uuid4()),
+            session_id=session_id,
+            vector=vector,
+            metadata={
+                "session_id": session_id,
+                "file_index": file_index,
+                "file_created_at": file_created_at,
+                "filename": file.filename,
+                "chunk_index": idx + 1,
+                "text": chunk
+            }
+        )
+
+        # 7️⃣ Save metadata in Postgres
+        save_metadata(file.filename, idx + 1, chunk)
+    
+    # 8️⃣ Set this as the current active session
+    redis_client.set("current_session", session_id, ex=86400)  # 24 hours
+
+    return IngestionResponse(
+        session_id=session_id,
+        file_index=file_index,
+        filename=file.filename,
+        num_chunks=len(chunks),
+        status="Stored successfully",
+        created_at=file_created_at
+    )
