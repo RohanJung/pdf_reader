@@ -6,7 +6,7 @@ client = QdrantClient(host=settings.VECTOR_DB_HOST, port=settings.VECTOR_DB_PORT
 
 def upsert_vector(vector_id: str, session_id: str , vector: list, metadata: dict):
     payload = metadata.copy()
-    payload["session_id"] = session_id  # explicitly attach session_id
+    payload["session_id"] = session_id  
     print('Sucess')
 
     client.upsert(

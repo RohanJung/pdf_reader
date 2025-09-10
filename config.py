@@ -2,32 +2,31 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # --- Vector DB (Qdrant) ---
+    #qdrant
     VECTOR_DB_HOST: str = "localhost"
     VECTOR_DB_PORT: int = 6333
     COLLECTION_NAME: str = "documents"
 
-    # --- Postgres (Metadata DB) ---
+    #Postgres 
     POSTGRES_USER: str = "raguser"
     POSTGRES_PASSWORD: str = "ragpassword"
     POSTGRES_DB: str = "ragdb"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
 
-    # --- Embedding model ---
+    #Embedding model
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
 
-    # --- Redis (Chat memory) ---
+    #Redis 
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    # --- LLM (Google Gemini API) ---
+    #LLM 
     GOOGLE_API_KEY: str = "AIzaSyDeIOgouRSK0-ok3LNrVZt3o9oVT__4qfw"
 
-    # --- Retrieval settings ---
+    #Retrieval settings
     TOP_K: int = 3
     CHUNK_SIZE_WORDS: int = 100
 
-    # --- Build Postgres URL dynamically ---
     @property
     def POSTGRES_URL(self) -> str:
         return (
@@ -38,11 +37,9 @@ class Settings(BaseSettings):
             f"{self.POSTGRES_DB}"
         )
 
-    # --- Build Qdrant URL dynamically ---
     @property
     def QDRANT_URL(self) -> str:
         return f"http://{self.VECTOR_DB_HOST}:{self.VECTOR_DB_PORT}"
 
 
-# Instantiate global settings
 settings = Settings()

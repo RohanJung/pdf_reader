@@ -1,5 +1,5 @@
 import io
-import fitz  # this is pymupdf
+import fitz  #pymupdf
 
 async def extract_text(file):
     contents = await file.read()
