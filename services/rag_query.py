@@ -72,8 +72,8 @@ def process_rag_query(
     # Check for booking intent
     booking_info = extract_booking_info(prompt)
     if booking_info:
-        store_booking(session_id, booking_info, redis_memory)
-        answer = format_booking_response(booking_info)
+        booking_id = store_booking(session_id, booking_info, redis_memory)
+        answer = f"{format_booking_response(booking_info)}\nBooking ID: {booking_id}"
     else:
         # Generate RAG response
         history_block = memory_text if memory_text else None

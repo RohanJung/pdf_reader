@@ -34,3 +34,16 @@ class IngestionResponse(BaseModel):
     num_chunks: int
     status: str
     created_at: Any
+
+class BookingData(BaseModel):
+    booking_id: str
+    session_id: str
+    name: Optional[str] = None
+    email: Optional[str] = None
+    date: Optional[str] = None
+    time: Optional[str] = None
+    message: Optional[str] = None
+
+class AllBookingsResponse(BaseModel):
+    bookings: List[List[str]]
+    total_count: int

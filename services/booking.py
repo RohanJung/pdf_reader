@@ -1,6 +1,6 @@
 import uuid
 import re
-from typing import Dict
+from typing import Dict, List
 from rag.memory import RedisMemory
 
 
@@ -38,11 +38,18 @@ def extract_booking_info(text: str) -> Dict[str, str]:
     return info
 
 
-def store_booking(session_id: str, booking_info: Dict[str, str], redis_memory: RedisMemory) -> None:
+def get_next_booking_id(redis_memory: RedisMemory) -> int:
+    """Get next sequential booking ID"""
+    return redis_memory.r.incr("booking_counter")
+
+
+def store_booking(session_id: str, booking_info: Dict[str, str], redis_memory: RedisMemory) -> str:
     """Store booking information in Redis with 7-day expiry"""
-    booking_key = f"booking:{session_id}:{uuid.uuid4()}"
+    booking_id = get_next_booking_id(redis_memory)
+    booking_key = f"booking:{session_id}:{booking_id}"
     redis_memory.r.hset(booking_key, mapping=booking_info)
     redis_memory.r.expire(booking_key, 86400 * 7)  # 7 days
+    return str(booking_id)
 
 
 def format_booking_response(booking_info: Dict[str, str]) -> str:
@@ -55,3 +62,28 @@ def format_booking_response(booking_info: Dict[str, str]) -> str:
         f"Time: {booking_info.get('time', 'Not provided')}\n"
         "Someone will contact you soon to confirm."
     )
+
+
+def get_all_bookings(redis_memory: RedisMemory) -> List[Dict[str, str]]:
+    """Retrieve all booking data from Redis"""
+    bookings = []
+    for key in redis_memory.r.scan_iter(match="booking:*"):
+        if key == "booking_counter":  # Skip the counter key
+            continue
+        booking_data = redis_memory.r.hgetall(key)
+        if booking_data:  # Only process if data exists
+            booking_data['booking_id'] = key.split(':')[-1]  # Extract numeric ID
+            booking_data['session_id'] = key.split(':')[1]   # Extract session_id
+            bookings.append(booking_data)
+    return bookings
+
+
+def get_booking_by_id(booking_id: str, redis_memory: RedisMemory) -> Dict[str, str]:
+    """Retrieve specific booking by ID"""
+    for key in redis_memory.r.scan_iter(match=f"booking:*:{booking_id}"):
+        booking_data = redis_memory.r.hgetall(key)
+        if booking_data:
+            booking_data['booking_id'] = booking_id
+            booking_data['session_id'] = key.split(':')[1]
+            return booking_data
+    return {}

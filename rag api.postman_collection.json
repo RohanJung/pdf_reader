@@ -1,0 +1,378 @@
+{
+	"info": {
+		"_postman_id": "d221448f-c465-4cec-b67a-d2edede8584d",
+		"name": "rag api",
+		"description": "Modular API collection for PDF Reader Custom RAG system with separated route modules",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27672344"
+	},
+	"item": [
+		{
+			"name": "1. Ingestion",
+			"item": [
+				{
+					"name": "Chunk by word",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('session_id', response.session_id);",
+									"    pm.test('Session ID captured', function() {",
+									"        pm.expect(response.session_id).to.not.be.empty;",
+									"    });",
+									"    pm.test('File processed successfully', function() {",
+									"        pm.expect(response.status).to.equal('Stored successfully');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/ingestion/?chunking=words",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ingestion",
+								""
+							],
+							"query": [
+								{
+									"key": "chunking",
+									"value": "words"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Chunk by sentence",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/ingestion/?chunking=sentences",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ingestion",
+								""
+							],
+							"query": [
+								{
+									"key": "chunking",
+									"value": "sentences"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Document upload and processing endpoints"
+		},
+		{
+			"name": "2. Query",
+			"item": [
+				{
+					"name": "Ask Simple Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prompt\": \"What is the main topic of this document?\",\n    \"top_k\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rag/ask",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"ask"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ask Technical Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prompt\": \"Can you explain the technical details mentioned in the document?\",\n    \"top_k\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rag/ask",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"ask"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ask Follow-up Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prompt\": \"Can you elaborate more on what you just mentioned?\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rag/ask",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"ask"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ask Booking Question (NLP)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prompt\": \"I want to book an appointment. My name is John Doe, email is john@example.com, for tomorrow at 2:00 PM\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rag/ask",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"ask"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ask Summary Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prompt\": \"Summarize the key points from the document and tell me if there are any action items\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rag/ask",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"ask"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "RAG question processing endpoints"
+		},
+		{
+			"name": "3. Booking",
+			"item": [
+				{
+					"name": "Direct Booking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane.smith@example.com\",\n    \"date\": \"2024-01-15\",\n    \"time\": \"10:30 AM\",\n    \"message\": \"Looking forward to discussing the project details\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rag/book",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"book"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Bookings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/rag/bookings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"bookings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Booking by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/rag/bookings/booking-id-here",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"bookings",
+								"booking-id-here"
+							]
+						},
+						"description": "Replace 'booking-id-here' with actual booking ID from previous responses"
+					},
+					"response": []
+				}
+			],
+			"description": "Booking creation and retrieval endpoints"
+		},
+		{
+			"name": "4. History",
+			"item": [
+				{
+					"name": "Get Full Chat History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/rag/history/{{session_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"history",
+								"{{session_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Limited Chat History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/rag/history/{{session_id}}?limit=5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"history",
+								"{{session_id}}"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clear Chat History",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/rag/history/{{session_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rag",
+								"history",
+								"{{session_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Chat history management endpoints"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "session_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
