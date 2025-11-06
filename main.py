@@ -5,8 +5,12 @@ from routes.booking import router as booking_router
 from routes.history import router as history_router
 from routes.session import router as session_router
 from db.migrations import create_tables
+from services.qdrant_startup import ensure_collection_exists
 
 app = FastAPI(title="Document RAG API")
+@app.on_event("startup")
+def startup_event():
+    ensure_collection_exists()
 
 create_tables()
 

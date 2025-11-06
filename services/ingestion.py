@@ -11,7 +11,11 @@ from config import settings
 import redis
 from models.responses import IngestionResponse
 
-qdrant_client = QdrantClient(host=settings.VECTOR_DB_HOST, port=settings.VECTOR_DB_PORT)
+qdrant_client = QdrantClient(
+    url="https://77c5f8a3-9343-47e3-8cb3-651fc822ba5c.europe-west3-0.gcp.cloud.qdrant.io:6333",
+    api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.jG1cN7xM_6AmCilYw-638ZOeAYq-3EJsGVC0kncTc9c",
+)
+
 redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 def get_next_file_index() -> int:

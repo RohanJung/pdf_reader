@@ -3,13 +3,13 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     #qdrant
-    VECTOR_DB_HOST: str = "localhost"
-    VECTOR_DB_PORT: int = 6333
-    COLLECTION_NAME: str = "documents"
+    # VECTOR_DB_HOST: str = "localhost"
+    # VECTOR_DB_PORT: int = 6333
+    COLLECTION_NAME: str = "document"
 
     #Postgres 
-    POSTGRES_USER: str = "raguser"
-    POSTGRES_PASSWORD: str = "ragpassword"
+    POSTGRES_USER: str = "rag"
+    POSTGRES_PASSWORD: str = "rag"
     POSTGRES_DB: str = "ragdb"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
 
     #Redis 
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL: str = "redis://default:9bVYBKvlGatr3XkEZUF1KXKKbrQSvCMP@redis-16235.c335.europe-west2-1.gce.redns.redis-cloud.com:16235"
 
     #LLM 
     GOOGLE_API_KEY: str = "AIzaSyDeIOgouRSK0-ok3LNrVZt3o9oVT__4qfw"
